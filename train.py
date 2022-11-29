@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
         if (ep + 1) % 2 == 0:
             fname = f"data/{cfg.method}_{cfg.dataset}_{ep}.pt"
-            fname = f"./drive/data/{cfg.method}_{cfg.dataset}_{ep}.pt"
+            fname = f"./drive/MyDrive/data/{cfg.method}_{cfg.dataset}_{ep}.pt"
             torch.save(model.state_dict(), fname)
 
         wandb.log({"loss": np.mean(loss_ep), "ep": ep})
