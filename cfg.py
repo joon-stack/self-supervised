@@ -7,6 +7,7 @@ from methods import METHOD_LIST
 
 
 def get_cfg():
+    print(f"CPU Count: {multiprocessing.cpu_count()}")
     """ generates configuration from user input in console """
     parser = argparse.ArgumentParser(description="")
     parser.add_argument(
@@ -135,7 +136,8 @@ def get_cfg():
     parser.add_argument(
         "--num_workers",
         type=int,
-        default=multiprocessing.cpu_count(),
+        # default=multiprocessing.cpu_count(),
+        default=4,
         help="dataset workers number",
     )
     parser.add_argument(

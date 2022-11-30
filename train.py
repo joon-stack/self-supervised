@@ -33,17 +33,23 @@ if __name__ == "__main__":
     ds = get_ds(cfg.dataset)(cfg.bs, cfg, cfg.num_workers)
     model = get_method(cfg.method)(cfg)
     model.cuda().train()
-    if cfg.fname is not None:
-        model.load_state_dict(torch.load(cfg.fname))
-
     optimizer = optim.Adam(model.parameters(), lr=cfg.lr, weight_decay=cfg.adam_l2)
     scheduler = get_scheduler(optimizer, cfg)
+    ep_sv = 0
+    if cfg.fname is not None:
+        checkpoint = torch.load(cfg.fname)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        ep_sv = checkpoint['epoch']
+        
+    print(f"{cfg.fname} loaded successfully")
+
 
     eval_every = cfg.eval_every
     lr_warmup = 0 if cfg.lr_warmup else 500
     cudnn.benchmark = True
 
-    for ep in trange(cfg.epoch, position=0):
+    for ep in trange(ep_sv, cfg.epoch, position=0):
         loss_ep = []
         iters = len(ds.train)
         for n_iter, (samples, _) in enumerate(tqdm(ds.train, position=1)):
@@ -74,6 +80,10 @@ if __name__ == "__main__":
 
         if (ep + 1) % 100 == 0:
             fname = f"data/{cfg.method}_{cfg.dataset}_{ep}.pt"
-            torch.save(model.state_dict(), fname)
+            torch.save({'epoch': ep,
+                        'model_state_dict': model.state_dict(),
+                        'optimizer_state_dict': optimizer.state_dict(),
+                        'loss': loss,
+                        }, fname)
 
         wandb.log({"loss": np.mean(loss_ep), "ep": ep})
