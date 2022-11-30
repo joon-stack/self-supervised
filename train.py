@@ -38,13 +38,10 @@ if __name__ == "__main__":
     ep_sv = 0
     if cfg.fname is not None:
         checkpoint = torch.load(cfg.fname)
-        model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        ep_sv = checkpoint['epoch']
-        
+        model.load_state_dict(checkpoint["model_state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        ep_sv = checkpoint["epoch"]
     print(f"{cfg.fname} loaded successfully")
-
-
     eval_every = cfg.eval_every
     lr_warmup = 0 if cfg.lr_warmup else 500
     cudnn.benchmark = True
@@ -78,12 +75,16 @@ if __name__ == "__main__":
             acc_knn, acc = model.get_acc(ds.clf, ds.test)
             wandb.log({"acc": acc[1], "acc_5": acc[5], "acc_knn": acc_knn}, commit=False)
 
-        if (ep + 1) % 100 == 0:
+        if (ep + 1) % 2 == 0:
             fname = f"data/{cfg.method}_{cfg.dataset}_{ep}.pt"
-            torch.save({'epoch': ep,
-                        'model_state_dict': model.state_dict(),
-                        'optimizer_state_dict': optimizer.state_dict(),
-                        'loss': loss,
-                        }, fname)
+            torch.save(
+                {
+                    "epoch": ep,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "loss": loss,
+                },
+                fname,
+            )
 
         wandb.log({"loss": np.mean(loss_ep), "ep": ep})
